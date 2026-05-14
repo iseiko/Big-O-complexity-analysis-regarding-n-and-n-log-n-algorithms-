@@ -146,11 +146,19 @@ Test each size under:
 
 ### 6.1 Random values
 
+![Random](charts/runtime_random.png)
+
 ### 6.2 Already sorted values
+
+![Sorted](charts/runtime_sorted.png)
 
 ### 6.3 Reverse sorted values
 
+![RevSorted](charts/runtime_reversed.png)
+
 ### 6.4 Many duplicates on dataset
+
+![Duplicates](charts/runtime_many_duplicates.png)
 
 ---
 
