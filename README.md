@@ -162,8 +162,73 @@ Test each size under:
 
 ---
 
-## 7. Conclusion (draft)
-QuickSort is generally more suitable for large datasets due to its `O(n log n)` average behavior and strong real-world performance. Selection Sort remains valuable for learning and for small inputs where simplicity matters, but its `O(n²)` growth makes it impractical as input size increases.
+## 7. Conclusion
+
+## Results and Discussion
+
+This section presents the benchmark results obtained from the Java implementations of **QuickSort** (random pivot + Hoare partition) and **Selection Sort**. For each input size `n` and each dataset distribution, the program executed multiple trials and recorded the elapsed time in **nanoseconds** using `System.nanoTime()`. The charts below plot the **median runtime** per configuration (median is preferred over mean because it reduces the effect of outliers caused by OS scheduling, background processes, and JVM JIT effects).
+
+### Experimental setup (summary)
+- **Algorithms tested:** QuickSort and Selection Sort (custom implementations in Java).
+- **Measured metric:** execution time to sort an `int[]` array (ns), later converted to **milliseconds** in plots.
+- **Fairness control:** for each `(n, distribution)`, both algorithms were given identical input values (the base array was cloned before each run).
+- **Correctness validation:** after each run, the program verified the array was sorted in ascending order.
+- **Distributions tested:**
+  1. **Random** values (general-case behavior)
+  2. **Sorted** input (already ordered)
+  3. **Reversed** input (descending order)
+  4. **Many duplicates** (values drawn from a small range)
+
+---
+
+### 1) Random input
+On random data, QuickSort consistently demonstrates lower growth than Selection Sort as `n` increases. This matches the expected asymptotic behavior:
+- QuickSort typically behaves like **O(n log n)** on average.
+- Selection Sort performs **O(n²)** comparisons regardless of input arrangement.
+
+As `n` grows, the gap becomes very large. For small arrays (e.g., `n=100`), the difference may be less dramatic because constant overheads (method calls, JVM/JIT effects, and array access costs) represent a larger portion of the total runtime. For larger arrays (e.g., `n=10,000` and above), Selection Sort scales poorly and quickly becomes impractical compared to QuickSort.
+
+**Interpretation:** the random-input chart is the best “general purpose” comparison and shows why QuickSort (and other `n log n` algorithms) are preferred for large datasets.
+
+---
+
+### 2) Sorted input
+On already sorted arrays, Selection Sort still performs the same fundamental work: it repeatedly scans the unsorted suffix to find the minimum, so its runtime remains dominated by **O(n²)** comparisons. Therefore, the sorted-input chart should look similar in shape to random input for Selection Sort.
+
+QuickSort’s behavior on sorted input depends heavily on **pivot strategy**. If QuickSort always chooses the first/last element as pivot, sorted input can trigger the classic **worst case O(n²)** due to highly unbalanced partitions. In this project, QuickSort uses a **random pivot**, which greatly reduces the probability of repeatedly bad partitions. As a result, QuickSort remains efficient and typically stays closer to its average-case growth.
+
+**Interpretation:** the sorted-input chart highlights an important engineering point: QuickSort can be very fast, but its worst-case risk is tied to pivot selection. Randomized pivot selection is a simple and effective mitigation.
+
+---
+
+### 3) Reversed input
+Reversed arrays can also be adversarial for certain QuickSort pivot choices. Similar to the sorted case, Selection Sort continues to exhibit **O(n²)** behavior because its nested-loop structure does not benefit from any existing order.
+
+QuickSort remains efficient here for the same reason as above: randomized pivot selection makes it unlikely to always partition in the most unbalanced way. However, small variations between sorted and reversed inputs can still appear due to differences in branch prediction and memory access patterns during partitioning.
+
+**Interpretation:** reversed input reinforces that Selection Sort does not adapt to input order, while QuickSort remains practical when implemented with a pivot strategy designed to avoid predictable worst cases.
+
+---
+
+### 4) Many duplicates
+Arrays with many repeated values are an important practical case (for example, categorical data or bounded-range measurements). Selection Sort again does not gain a meaningful advantage from duplicates, since it still scans the remainder of the array on every outer iteration.
+
+For QuickSort, duplicates can affect partitioning depending on how comparisons are handled. A two-way partition scheme can spend extra work swapping values equal to the pivot. Even so, QuickSort generally remains much faster than Selection Sort for moderate and large `n`. In some cases, a **three-way partition** (a.k.a. “Dutch National Flag” partitioning) can further improve performance with many duplicates by grouping `< pivot`, `== pivot`, and `> pivot` in one pass.
+
+**Interpretation:** the many-duplicates chart shows that dataset characteristics can influence performance, and it motivates potential improvements (e.g., three-way partition QuickSort) as future work.
+
+---
+
+### General observations and threats to validity
+- **JVM warm-up and JIT compilation:** early trials can be slower or noisier. Using warm-up runs and aggregating results across many trials helps reduce this effect.
+- **System noise:** background processes, CPU frequency scaling, and thermal throttling can affect timing. Running multiple trials and using the median reduces the impact.
+- **Measurement scope:** these benchmarks measure only the sorting time, not input generation or file I/O. This isolates algorithm performance more clearly.
+- **Hardware dependence:** absolute runtimes will differ across machines; however, the overall scaling behavior and relative differences between `O(n log n)` and `O(n²)` algorithms should remain consistent.
+
+---
+
+### Conclusion from the graphs
+Across all tested input distributions, **QuickSort scales significantly better** than **Selection Sort** as the array size increases. Selection Sort may be acceptable for very small inputs or educational purposes, but the experimental results support the theoretical expectation that `n log n` algorithms dominate `n²` algorithms for large datasets. QuickSort’s performance is strong in practice when implemented with a pivot strategy that avoids predictable worst cases.
 
 ---
 
